@@ -8,11 +8,14 @@ This is absolutely not a production environment tool; the use case is not so str
 
 You can download stowage as a container and use it to self-install:
 
+```
   $ sudo docker pull ealexhudson/stowage
   $ sudo docker run --rm -ti --privileged --read-only=true -v /:/stowage-managed-system ealexhudson/stowage self-install
+```
 
 After that, stowage should be available on the system - but nothing will yet be installed:
 
+```
   $ sudo stowage list
   $ sudo stowage install hello-world
   $ sudo hello-world
@@ -21,6 +24,7 @@ After that, stowage should be available on the system - but nothing will yet be 
   This message shows that your installation appears to be working correctly.
 
   [.. etc ..]
+```
 
 The install command can take a Docker image name (in which case it tries to choose some simple defaults), or a reference to a local JSON file (for more complex commands - there are some examples in the examples folder). In the future I also want to add an ability to refer to JSON file by URL.
 
