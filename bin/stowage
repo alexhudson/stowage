@@ -1,0 +1,294 @@
+#!/bin/env python
+
+import os
+import sys
+import json
+import urllib
+import argparse
+import subprocess
+
+
+""" stowage - a package-manager-like experience for CLI tools in Docker containers.
+    (c) 2017 Alex Hudson, released under the terms of the MIT license. """
+
+
+class ContainerBinary(object):
+
+    base = "usr/sbin"
+
+    def __init__(self, spec):
+        self.spec = spec
+
+    def get_filename(self):
+        name = self.spec.get_name()
+        if name is None:
+            raise Exception("No name")
+
+        root = "/"
+        if os.path.isdir("/stowage-managed-system"):
+            root = "/stowage-managed-system"
+
+        return os.path.join(root, self.base, name)
+
+    def docker_run(self, args=None):
+        cmd = ["docker", "run", "--rm"]
+
+        if self.spec.get_meta("tty"):
+            cmd += ["-t"]
+        if self.spec.get_meta("interactive"):
+            cmd += ["-i"]
+        if self.spec.get_meta("privileged"):
+            cmd += ["--privileged"]
+        if self.spec.get_meta("read-only", True):
+            cmd += ["--read-only=true"]
+
+        for mount in self.spec.get_mounts():
+            mnt_from = mount.get("from", "`pwd`")
+            mnt_to = mount.get("to")
+            if mnt_to is None:
+                raise Exception("Faulty specification: no 'to' for requested mount")
+            cmd += ["-v", "%s:%s" % (mnt_from, mnt_to)]
+
+        cmd += [self.spec.get_image(), self.spec.get_command()] + args
+        return cmd
+
+    def call(self, args=None):
+        cmd = self.docker_run(args)
+        subprocess.call(cmd)
+
+    def remove(self):
+        binary = self.get_filename()
+        if os.path.exists(binary):
+            # TODO : this is quite dangerous for now!
+            os.remove(binary)
+
+    def install(self):
+        binary = self.get_filename()
+        self.remove()
+
+        meta = {
+            "type": "stowage",
+            "version": 1
+        }
+        meta_str = json.dumps(meta)
+
+        args = self.docker_run([])
+        args_str = " ".join(args)
+
+        with open(binary, "w") as binary_file:
+            binary_file.write("#!/bin/sh\n# %s\n%s \"$@\"\n" % (
+                meta_str, args_str
+            ))
+            binary_file.close()
+            os.chmod(binary, 0755)
+
+
+class Specification(object):
+
+    # ideally, want to move these to /etc/stowage.conf or something
+    # different systems will have different paths.
+    base = "usr/local/etc/stowage"
+    config = {}
+
+    def __init__(self, name=None):
+        self.name = name
+
+    def get_basedir(self):
+        root = "/"
+        if os.path.isdir("/stowage-managed-system"):
+            root = "/stowage-managed-system"
+        return os.path.join(root, self.base)
+
+
+    def get_specfilename(self):
+        if self.name is None:
+            raise Exception("No name")
+        
+        return os.path.join(self.get_basedir(), self.name + ".json")
+
+    def get_installed(self):
+        for dirpath, dirnames, filenames in os.walk(self.get_basedir()):
+            for filename in filenames:
+                yield (filename[0:-5], )
+
+    def load(self, filename=None):
+        if filename is None:
+            filename = self.get_specfilename()
+
+        with open(filename) as spec:  
+            data = json.load(spec)
+            self.load_from_json(data)
+
+    def load_from_json(self, data):
+        self.config = data
+        self.name = data.get("name", self.name)
+
+    def download(self, uri):
+        with urllib.urlopen(uri) as spec:
+            data = json.load(spec)
+            self.config = data
+
+    def install(self):
+        base = self.get_basedir()
+        filename = self.get_specfilename()
+
+        if not os.path.isdir(base):
+            os.makedirs(base)
+
+        spec_data = json.dumps(self.config)
+        with open(filename, "w") as spec:
+            spec.write(spec_data)
+            spec.close()
+
+    def remove(self):
+        filename = self.get_specfilename()
+
+        if not os.path.exists(filename):
+            raise Exception("There is no spec file to remove")
+
+        os.remove(filename)
+
+    def get_name(self):
+        return self.name
+
+    def get_meta(self, name, default=None):
+        return self.config.get("meta", {}).get(name, default)
+
+    def get_image(self):
+        return self.config.get("image", "")
+
+    def get_mounts(self):
+        return self.config.get("mounts", [])
+
+    def get_command(self):
+        return self.config.get("command", "")
+
+
+class CommandBase(object):
+    def set_args(self, args):
+        self.args = args
+
+    def run(self):
+        print "Unknown command %s" % (self.args.command)
+        sys.exit(-1)
+
+
+class CommandSelfInstall(CommandBase):
+    def run(self):
+        selfspec = Specification("stowage")
+        selfspec.load_from_json({
+            "name": "stowage",
+            "image": "ealexhudson/stowage",
+            "command": "",
+            "meta": {
+                "tty": True,
+                "interactive": True,
+                "privileged": True
+            },
+            "mounts": [
+                {
+                    "from": "/",
+                    "to": "/stowage-managed-system"
+                },
+                {
+                    "to": "/root"
+                }
+            ]
+        })
+
+        selfspec.install()
+        binary = ContainerBinary(selfspec)
+        binary.install()
+
+
+class CommandInstall(CommandBase):
+    def run(self):
+        spec = Specification(self.args.name)
+        if os.path.isfile(self.args.name):
+            # local file
+            spec.load(self.args.name)
+        elif self.args.name[0:4] == 'http':
+            print "Not yet implemented!"
+            exit(-1)
+        else:
+            # a docker image reference
+            spec.load_from_json({
+                "name": self.args.name,
+                "image": self.args.name,
+                "command": "",
+                "auto": True
+            })
+
+        try:
+            spec.install()
+        except OSError:
+            print "Cannot save specfile: do you have permission?"
+
+        bin = ContainerBinary(spec)
+        bin.install()
+
+
+class CommandUninstall(CommandBase):
+    def run(self):
+        spec = Specification(self.args.name)
+        bin = ContainerBinary(spec)
+        spec.remove()
+        bin.remove()
+
+
+class CommandList(CommandBase):
+    def run(self):
+        spec = Specification()
+        for specs in spec.get_installed():
+            print specs[0]
+
+
+class CommandRun(CommandBase):
+    def run(self):
+        spec = Specification(self.args.image)
+        spec.load()
+
+        bin = ContainerBinary(spec)
+        bin.call(self.args.args)
+
+
+if __name__ == "__main__":
+    called_path, called_binary = os.path.split(os.path.abspath(__file__))
+    called_args = sys.argv[1:]
+    if called_binary != "stowage":
+        called_args = ["run", called_binary] + sys.argv[1:]
+
+    parser = argparse.ArgumentParser(prog="stowage")
+    subparsers = parser.add_subparsers(help="command help", dest="command")
+
+    parser_self_install = subparsers.add_parser("self-install", help="self-install stowage locally")
+
+    parser_install = subparsers.add_parser("install", help="install a docker cli container")
+    parser_install.add_argument("name", type=str, help="package name or local file")
+
+    parser_uninstall = subparsers.add_parser("uninstall", help="uninstall a docker cli container")
+    parser_uninstall.add_argument("name", type=str, help="package name or local file")
+
+    parser_list = subparsers.add_parser("list", help="list all installed docker cli containers")
+
+    parser_run = subparsers.add_parser("run", help="wrapper around docker run")
+    parser_run.add_argument("image", type=str, help="image name")
+    parser_run.add_argument("args", nargs=argparse.REMAINDER)
+
+    args = parser.parse_args(args=called_args)
+
+    commands = {
+        'self-install': CommandSelfInstall,
+        'install': CommandInstall,
+        'run': CommandRun,
+        'list': CommandList,
+        'uninstall': CommandUninstall
+    }
+
+    cls = CommandBase
+    if args.command in commands:
+        cls = commands[args.command]
+
+    cmd = cls()
+    cmd.set_args(args)
+    cmd.run()

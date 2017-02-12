@@ -1,0 +1,15 @@
+{
+    "name": "dockerfile-lint",
+    "image": "projectatomic/dockerfile-lint",
+    "command": "dockerfile_lint",
+    "meta": {
+        "tty": true,
+        "interactive": true,
+        "privileged": true
+    },
+    "mounts": [
+        {
+            "to": "/root"
+        }
+    ]
+}

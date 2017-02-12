@@ -1,0 +1,10 @@
+{
+    "name": "hello-world",
+    "image": "hello-world",
+    "command": "",
+    "meta": {
+        "tty": true,
+        "interactive": false,
+        "privileged": false
+    }
+}
