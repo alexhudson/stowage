@@ -173,6 +173,11 @@ class CommandBase(object):
         sys.exit(-1)
 
 
+class CommandGetStarted(CommandBase):
+    def run(self):
+        print "docker run --rm -i --privileged --read-only=true -v /:/stowage-managed-system ealexhudson/stowage self-install"
+
+
 class CommandSelfInstall(CommandBase):
     def run(self):
         selfspec = Specification("stowage")
@@ -261,6 +266,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="stowage")
     subparsers = parser.add_subparsers(help="command help", dest="command")
 
+    parser_get_started = subparsers.add_parser("get-started", help="local installation helper script")
     parser_self_install = subparsers.add_parser("self-install", help="self-install stowage locally")
 
     parser_install = subparsers.add_parser("install", help="install a docker cli container")
@@ -279,6 +285,7 @@ if __name__ == "__main__":
 
     commands = {
         'self-install': CommandSelfInstall,
+        'get-started': CommandGetStarted,
         'install': CommandInstall,
         'run': CommandRun,
         'list': CommandList,
