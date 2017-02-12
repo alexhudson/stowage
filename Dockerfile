@@ -11,4 +11,6 @@ WORKDIR /root
 
 ENTRYPOINT ["/usr/sbin/stowage"]
 
+CMD ["-h"]
+
 COPY bin/stowage /usr/sbin/stowage
