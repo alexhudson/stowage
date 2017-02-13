@@ -5,8 +5,6 @@ LABEL Description "stowage for Docker cli distribution management"
 LABEL Vendor "Alex Hudson"
 LABEL Version "0.1"
 
-RUN ln -s /usr/bin/env /bin/env
-
 WORKDIR /root
 
 ENTRYPOINT ["/usr/sbin/stowage"]
