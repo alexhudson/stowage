@@ -20,9 +20,12 @@ class ContainerBinary(object):
         self.spec = spec
 
     def get_filename(self):
-        name = self.spec.get_name()
-        if name is None:
+        name = self.spec.get_command()
+        if name is None or name == "":
+            name = self.spec.get_name()
+        if name is None or name == "":
             raise Exception("No name")
+        name = name.replace("/", "_")
 
         root = "/"
         if os.path.isdir("/stowage-managed-system"):
@@ -103,8 +106,9 @@ class Specification(object):
     def get_specfilename(self):
         if self.name is None:
             raise Exception("No name")
-        
-        return os.path.join(self.get_basedir(), self.name + ".json")
+
+        pathname = self.name.replace("/", "_")
+        return os.path.join(self.get_basedir(), pathname + ".json")
 
     def get_installed(self):
         for dirpath, dirnames, filenames in os.walk(self.get_basedir()):
@@ -220,7 +224,7 @@ class CommandInstall(CommandBase):
             spec.load_from_json({
                 "name": self.args.name,
                 "image": self.args.name,
-                "command": "",
+                "command": self.args.install_command,
                 "auto": True
             })
 
@@ -270,6 +274,8 @@ if __name__ == "__main__":
     parser_self_install = subparsers.add_parser("self-install", help="self-install stowage locally")
 
     parser_install = subparsers.add_parser("install", help="install a docker cli container")
+    parser_install.add_argument("--command=", type=str,
+        help="override the given command", dest="install_command")
     parser_install.add_argument("name", type=str, help="package name or local file")
 
     parser_uninstall = subparsers.add_parser("uninstall", help="uninstall a docker cli container")
