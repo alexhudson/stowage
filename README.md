@@ -4,26 +4,32 @@
 
 This is absolutely not a production environment tool; the use case is not so strong there anyway, but the fundamental use of the root account and the various little conveniences are largely inappropriate and could lead to security issues.
 
-## Example
+## Getting Started
 
 You can download stowage as a container and use it to self-install:
 
 ```
-  $ sudo docker pull ealexhudson/stowage
-  $ sudo docker run --rm -ti --privileged --read-only=true -v /:/stowage-managed-system ealexhudson/stowage self-install
+$ sudo docker pull ealexhudson/stowage
+$ sudo docker run ealexhudson/stowage get-started | sudo sh
 ```
 
-After that, stowage should be available on the system - but nothing will yet be installed:
+(If you don't like the idea of piping unknown stuff to a sudo shell, good for you! Just examine the output for the actual docker bootstrapping command.)
+
+After that, stowage should be available on the system - and only stowage will be installed:
 
 ```
-  $ sudo stowage list
-  $ sudo stowage install hello-world
-  $ sudo hello-world
+$ sudo stowage list
+stowage
+$ sudo stowage install hello-world
+$ sudo stowage list
+stowage
+hello-world
+$ sudo hello-world
 
-  Hello from Docker!
-  This message shows that your installation appears to be working correctly.
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
 
-  [.. etc ..]
+[.. etc ..]
 ```
 
 The install command can take a Docker image name (in which case it tries to choose some simple defaults), or a reference to a local JSON file (for more complex commands - there are some examples in the examples folder). In the future I also want to add an ability to refer to JSON file by URL.
@@ -34,9 +40,39 @@ This is primarily a tool for development environments: the point is to be able t
 
 stowage owes a lot of inspiration to GNU Stow, but has a different model as it attempts to be semi-self hosted - you can run stowage through a container, and then use stowage to manage stowage.
 
+Some better examples of using `stowage`:
+
+1. Installing CLI tools for an environment
+
+To pick an example at random, we can do:
+
+```
+$ sudo stowage install --command azure microsoft/azure-cli
+$ sudo azure 
+info:             _    _____   _ ___ ___
+info:            /_\  |_  / | | | _ \ __|
+info:      _ ___/ _ \__/ /| |_| |   / _|___ _ _
+info:    (___  /_/ \_\/___|\___/|_|_\___| _____)
+info:       (_______ _ _)         _ ______ _)_ _ 
+info:              (______________ _ )   (___ _ _)
+info:    
+info:    Microsoft Azure: Microsoft's Cloud Platform
+info:    
+info:    Tool version 0.10.9
+[ .. etc .. ]
+```
+
+We now have a "local binary" `azure` that can be used quite conveniently. A similar pattern exists for other API-using CLI tools, such as AWS, OpenStack, to name a few. 
+
 ## Making a CLI tool installable via stowage
 
 If you have a CLI tool wrapped in a container, you're already most of the way there - stowage will try to pick some simple defaults. 
+
+### Tips for your Dockerfile
+
+1. Use ENTRYPOINT and CMD together
+
+Point `ENTRYPOINT` at your wrapped executable, and give `CMD` some reasonable default - for `stowage`, I picked `-h` so that when you run it without arguments it gives you the help text. This is a pretty reasonable convention for containers that want to behave like statically linked binaries.
 
 ## Developing
 
