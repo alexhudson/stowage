@@ -1,7 +1,7 @@
 {
-    "Name": "dockerfile-lint",
-    "Image": "projectatomic/dockerfile-lint",
-    "Command": "dockerfile_lint",
+    "Name": "microsoft-dotnet",
+    "Image": "microsoft/dotnet:latest",
+    "Command": "dotnet",
     "Options": {
         "Tty": true,
         "Interactive": true,
