@@ -11,4 +11,4 @@ ENTRYPOINT ["/usr/sbin/stowage"]
 
 CMD ["-h"]
 
-COPY bin/stowage /usr/sbin/stowage
+COPY stowage /usr/sbin/stowage
