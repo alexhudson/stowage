@@ -14,8 +14,9 @@ type runtimeOptions struct {
 
 // TODO: options for mount (selinux, etc..)
 type runtimeMount struct {
-	host  string
-	guest string
+	Host  string // path on the docker host
+	Guest string // destination mount on the container
+	Cwd   bool   // whether we're asking to mount current working directory
 }
 
 // Specification is a type
@@ -79,7 +80,11 @@ func (s *Specification) runCommandSlice() []string {
 
 	if s.Mounts != nil {
 		for _, mount := range s.Mounts {
-			cmd = append(cmd, "-v", mount.host+":"+mount.guest)
+			source := mount.Host
+			if mount.Cwd {
+				source = "`pwd`"
+			}
+			cmd = append(cmd, "-v", source+":"+mount.Guest)
 		}
 	}
 

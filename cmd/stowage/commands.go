@@ -20,8 +20,8 @@ var selfSpec = Specification{
 	},
 	Mounts: []runtimeMount{
 		{
-			host:  "/usr/local",
-			guest: "/stowage/install-tree",
+			Host:  "/usr/local",
+			Guest: "/stowage/install-tree",
 		},
 	},
 }
@@ -45,10 +45,10 @@ func cmdInstall(c *cli.Context) error {
 	}
 	store.saveSpecification(&spec)
 
-	binary := Binary{name: name, spec: spec}
+	binary := Binary{name: spec.Name, spec: spec}
 	binary.install()
 
-	fmt.Printf("%s installed\n", name)
+	fmt.Printf("%s installed\n", spec.Name)
 	return nil
 }
 
