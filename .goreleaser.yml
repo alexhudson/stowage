@@ -2,6 +2,7 @@ project_name: stowage
 
 builds:
   - binary: stowage
+    main: ./cmd/stowage
     goos:
       - darwin
       - linux
