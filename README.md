@@ -34,6 +34,71 @@ This message shows that your installation appears to be working correctly.
 
 The install command can take a Docker image name (in which case it tries to choose some simple defaults), or a reference to a local JSON file (for more complex commands - there are some examples in the examples folder). In the future I also want to add an ability to refer to JSON file by URL.
 
+## Building
+
+There are two versions of stowage; a proof-of-concept script written in Python that served as the basis of the project, and the new utility written in Go. There is no build required on the Python side, only the Go.
+
+First, check out the source to your usual location within `$GOPATH`. You can then run `make` to see the various targets available.
+
+stowage requires `golang` to be installed, and also uses `dep` for dependency management. Install all the required dependencies simply by running:
+
+```
+$ make setup
+```
+
+This should complete successfully, but if not:
+
+* `dep: No such file or directory` - this means you don't have the golang `dep` utility installed. This can be resolved with `brew install dep` or the equivalent on your platform.
+* `gometalinter: No such file or directory` - this means that `$GOPATH/bin/` is not in your `$PATH`, and the build script cannot find the dependency.
+
+You can then build stowage simply by running:
+
+```
+$ make build
+```
+
+It is created in the top-level directory; test your new utility by running `./stowage -h` and verify that the help is output.
+
+## Installation
+
+There are three different options for installation:
+
+### Install the stowage utility into $GOPATH
+
+This is achieved simply by running:
+
+```
+$ make install
+```
+
+`stowage` will then be available for your user (assuming you have `$GOPATH/bin` in your `$PATH`) and you will be able to use it as normal.
+
+### Install the stowage utility into a system-wide location.
+
+There is no Makefile command to do this, but you can simply run:
+
+```
+$ sudo cp ./stowage /usr/local/bin
+```
+
+This will make the `stowage` utility available for all the users on your system without having to mess about with `$PATH`.
+
+### Create the container and stow it locally
+
+Since stowage can manage utilities that are packaged into containers, and stowage itself is such a utility, stowage can self-install itself. To do this, you first need to build a local version of the container image (otherwise, the self-install will pull in the published image, which will not contain the version of the utility you have already build). Then, simply self-install it as per the normal instructions.
+
+One caveat: the container is designed to run in a Linux/amd64 container. If you have built the utility on another platform, such as MacOS, you will get an error about compatibility if you try to run the container, like `standard_init_linux.go:178: exec user process caused "exec format error"`.
+
+To solve this, you need to do a cross-compiled build first. That's what the `make build` below does - it's fine to skip that step if you are already on Linux/amd64.
+
+```
+$ GOOS=linux GOARCH=amd64 make build
+$ make container
+$ docker run ealexhudson/stowage get-started | sudo sh
+```
+
+
+
 ## Motivation
 
 This is primarily a tool for development environments: the point is to be able to quickly and easily distribute tools to fellow workers that will effectively auto-update, and be able to use them within build pipelines (which are probably container builds).
