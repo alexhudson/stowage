@@ -14,7 +14,12 @@ type Binary struct {
 }
 
 func (b *Binary) getWrapperPath() string {
-	return filepath.Join("/usr/local/bin/", b.name)
+	prefix := "/usr/local"
+	if _, err := os.Stat("/stowage/install-tree"); !os.IsNotExist(err) {
+		prefix = "/stowage/install-tree"
+	}
+
+	return filepath.Join(prefix, "bin", b.name)
 }
 
 func (b *Binary) install() error {

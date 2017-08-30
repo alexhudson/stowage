@@ -14,7 +14,7 @@ var selfSpec = Specification{
 	Image:   "ealexhudson/stowage",
 	Command: "",
 	Options: runtimeOptions{
-		Interactive: true,
+		Interactive: false,
 		Tty:         true,
 		Privileged:  true,
 	},
@@ -27,6 +27,7 @@ var selfSpec = Specification{
 }
 
 func cmdGetStarted(c *cli.Context) error {
+
 	fmt.Println(selfSpec.runCommand() + " self-install")
 	return nil
 }

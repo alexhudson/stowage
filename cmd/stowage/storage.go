@@ -12,8 +12,13 @@ type storage struct {
 }
 
 func createStorage() storage {
+	prefix := "/usr/local"
+	if _, err := os.Stat("/stowage/install-tree"); !os.IsNotExist(err) {
+		prefix = "/stowage/install-tree"
+	}
+
 	s := storage{
-		specDir: "/usr/local/lib/stowage/spec/",
+		specDir: filepath.Join(prefix, "share/stowage/spec/"),
 	}
 	return s
 }
