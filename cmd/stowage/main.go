@@ -52,6 +52,18 @@ func main() {
 			Usage:   "Run a command directly",
 			Action:  cmdRun,
 		},
+		{
+			Name:    "repo-list",
+			Aliases: []string{"rl"},
+			Usage:   "List known repositories",
+			Action:  cmdRepoList,
+		},
+		{
+			Name:    "repo-scan",
+			Aliases: []string{"rs"},
+			Usage:   "Scan a directory and create a repository file",
+			Action:  cmdRepoScan,
+		},
 	}
 
 	_ = app.Run(os.Args)

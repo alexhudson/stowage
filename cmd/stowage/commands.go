@@ -114,3 +114,31 @@ func cmdRun(c *cli.Context) error {
 
 	return nil
 }
+
+func cmdRepoScan(c *cli.Context) error {
+	repoDir := RepositoryDir{
+		Path: c.Args().Get(0),
+	}
+
+	repo := repoDir.getRepository()
+	if repo.Name == "" {
+		repo.Name = c.Args().Get(1)
+	}
+
+	repoDir.scan()
+	repoDir.save()
+
+	return nil
+}
+
+func cmdRepoList(c *cli.Context) error {
+	store := createStorage()
+
+	repos := store.listRepositories()
+
+	for _, repo := range repos {
+		fmt.Println(repo)
+	}
+
+	return nil
+}

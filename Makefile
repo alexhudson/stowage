@@ -8,7 +8,7 @@ setup: ## Install all the build and lint dependencies
 	gometalinter --install --update
 
 build: ## Build a beta version
-	go build -o stowage ./cmd/stowage/*.go
+	go build -o stowage ./cmd/stowage/
 
 install: ## Install to $GOPATH/src
 	go install ./cmd/...
