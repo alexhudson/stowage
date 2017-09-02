@@ -1,10 +1,31 @@
-## Synopsis
+# Synopsis
 
 **stowage** is a very simple package-manager-alike for Docker containers that wrap cli tools. The idea is not to replace package management; this is largely a development-environment convenience to bring together tools in a relatively simple way.
 
-This is absolutely not a production environment tool; the use case is not so strong there anyway, but the fundamental use of the root account and the various little conveniences are largely inappropriate and could lead to security issues.
+My primary use case is development teams and CI pipelines. By making development tools available as containers, they can be easily shared and re-used by others developers and CI alike - stowage makes this process simpler, which in turn encourages further such tools and sharing to occur.
 
-## Getting Started
+This is really not a production environment tool; the use case is not so strong there anyway, but the fundamental use of the root account and the various little conveniences are largely inappropriate and could lead to security issues. However, I don't think there's anything wrong with creating tools to query/manipulate the production environment using stowage.
+
+# Installation
+
+For now, I only really support Linux and MacOS systems - sorry, Windows users. 
+
+## General (works on all platforms)
+
+You can download a copy of the binary from the [stowage releases](https://github.com/alexhudson/stowage/releases/latest) page, and copy that somewhere convenient (i.e., `/usr/local/bin`). This is usually enough.
+
+## MacOS 
+
+MacOS users can use homebrew to install `stowage`:
+
+```
+$ brew tap alexhudson/stowage
+$ brew install stowage
+```
+
+This is the more automatic version of the same process, you will end up with the latest release binary in the right place, and indeed it will update as releases happen.
+
+## Linux
 
 You can download stowage as a container and use it to self-install:
 
@@ -15,11 +36,20 @@ $ sudo docker run ealexhudson/stowage get-started | sudo sh
 
 (If you don't like the idea of piping unknown stuff to a sudo shell, good for you! Just examine the output for the actual docker bootstrapping command.)
 
-After that, stowage should be available on the system - and only stowage will be installed:
+# Getting started
+
+Once you've installed `stowage` and make it available, you can use it to list all the stowed containers you already have. Usually, this list will be empty, although if you used a container to self-install stowage then it will list itself!
 
 ```
-$ sudo stowage list
+$ stowage list
 stowage
+```
+
+On Linux, you may need to use `sudo` to run some stowage commands. Generally, `list` is fine, but you will need it to `install` or `uninstall` - unless you run as root (hopefully not!) or set up some specific permissions for it. You will also need to run the wrapped commands under `sudo` if your user does not have permission to start docker containers.
+
+Let's try installing the generic Docker `hello-world` image, and see how this works:
+
+```
 $ sudo stowage install hello-world
 $ sudo stowage list
 stowage
@@ -34,7 +64,47 @@ This message shows that your installation appears to be working correctly.
 
 The install command can take a Docker image name (in which case it tries to choose some simple defaults), or a reference to a local JSON file (for more complex commands - there are some examples in the examples folder). In the future I also want to add an ability to refer to JSON file by URL.
 
-## Building
+# Motivation
+
+This is primarily a tool for development environments: the point is to be able to quickly and easily distribute tools to fellow workers that will effectively auto-update, and be able to use them within build pipelines (which are probably container builds).
+
+stowage owes a lot of inspiration to GNU Stow, but has a different model as it attempts to be semi-self hosted - you can run stowage through a container, and then use stowage to manage stowage.
+
+Some better examples of using `stowage`:
+
+1. Installing CLI tools for an environment
+
+To pick an example at random, we can do:
+
+```
+$ sudo stowage install --command azure microsoft/azure-cli
+$ sudo azure 
+info:             _    _____   _ ___ ___
+info:            /_\  |_  / | | | _ \ __|
+info:      _ ___/ _ \__/ /| |_| |   / _|___ _ _
+info:    (___  /_/ \_\/___|\___/|_|_\___| _____)
+info:       (_______ _ _)         _ ______ _)_ _ 
+info:              (______________ _ )   (___ _ _)
+info:    
+info:    Microsoft Azure: Microsoft's Cloud Platform
+info:    
+info:    Tool version 0.10.9
+[ .. etc .. ]
+```
+
+We now have a "local binary" `azure` that can be used quite conveniently. A similar pattern exists for other API-using CLI tools, such as AWS, OpenStack, to name a few. 
+
+# Making a CLI tool installable via stowage
+
+If you have a CLI tool wrapped in a container, you're already most of the way there - stowage will try to pick some simple defaults. 
+
+### Tips for your Dockerfile
+
+1. Use ENTRYPOINT and CMD together
+
+Point `ENTRYPOINT` at your wrapped executable, and give `CMD` some reasonable default - for `stowage`, I picked `-h` so that when you run it without arguments it gives you the help text. This is a pretty reasonable convention for containers that want to behave like statically linked binaries.
+
+# Building stowage from source
 
 There are two versions of stowage; a proof-of-concept script written in Python that served as the basis of the project, and the new utility written in Go. There is no build required on the Python side, only the Go.
 
@@ -59,7 +129,9 @@ $ make build
 
 It is created in the top-level directory; test your new utility by running `./stowage -h` and verify that the help is output.
 
-## Installation
+## Installation after you built from source
+
+NOTE this is not the general installation instruction; this is just if you have modified stowage - please see above for the regular installation instructions!
 
 There are three different options for installation:
 
@@ -97,60 +169,13 @@ $ make container
 $ docker run ealexhudson/stowage get-started | sudo sh
 ```
 
-
-
-## Motivation
-
-This is primarily a tool for development environments: the point is to be able to quickly and easily distribute tools to fellow workers that will effectively auto-update, and be able to use them within build pipelines (which are probably container builds).
-
-stowage owes a lot of inspiration to GNU Stow, but has a different model as it attempts to be semi-self hosted - you can run stowage through a container, and then use stowage to manage stowage.
-
-Some better examples of using `stowage`:
-
-1. Installing CLI tools for an environment
-
-To pick an example at random, we can do:
-
-```
-$ sudo stowage install --command azure microsoft/azure-cli
-$ sudo azure 
-info:             _    _____   _ ___ ___
-info:            /_\  |_  / | | | _ \ __|
-info:      _ ___/ _ \__/ /| |_| |   / _|___ _ _
-info:    (___  /_/ \_\/___|\___/|_|_\___| _____)
-info:       (_______ _ _)         _ ______ _)_ _ 
-info:              (______________ _ )   (___ _ _)
-info:    
-info:    Microsoft Azure: Microsoft's Cloud Platform
-info:    
-info:    Tool version 0.10.9
-[ .. etc .. ]
-```
-
-We now have a "local binary" `azure` that can be used quite conveniently. A similar pattern exists for other API-using CLI tools, such as AWS, OpenStack, to name a few. 
-
-## Making a CLI tool installable via stowage
-
-If you have a CLI tool wrapped in a container, you're already most of the way there - stowage will try to pick some simple defaults. 
-
-### Tips for your Dockerfile
-
-1. Use ENTRYPOINT and CMD together
-
-Point `ENTRYPOINT` at your wrapped executable, and give `CMD` some reasonable default - for `stowage`, I picked `-h` so that when you run it without arguments it gives you the help text. This is a pretty reasonable convention for containers that want to behave like statically linked binaries.
-
-## Developing
-
-stowage can be run locally as a single script rather than through the container; this is the easiest method for development.
-
-In the future I'd likely convert this to another language which produces a single static binary (e.g. golang) - but for now, it's remaining in Python because it's easy to test a few different ideas rapidly.
+# Miscelleous matters
 
 ## Security
 
 There's no clear security model for this tool yet - it relies a lot on the premise of root access. In the future, I'd like to significantly limit this as far as possible. Particularly on systems where access to docker is based on group membership or SELinux labels, there's no massive reason for this to be root.
 
 Also, the need for stowage to access the root filesystem is mainly for it to install the various docker wrapper scripts that it creates - the more security conscious are probably willing to adjust $PATH instead, and that should be a supported option.
-
 
 ## Tests
 
