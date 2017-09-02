@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"syscall"
@@ -111,6 +114,21 @@ func cmdRun(c *cli.Context) error {
 	if execErr != nil {
 		panic(execErr)
 	}
+
+	return nil
+}
+
+func cmdRepoAdd(c *cli.Context) error {
+	var repo Repository
+
+	uri := c.Args().Get(0)
+	response, _ := http.Get(uri + "_stowage.json")
+	buf, _ := ioutil.ReadAll(response.Body)
+	json.Unmarshal(buf, &repo)
+	repo.URI = uri
+
+	store := createStorage()
+	store.saveRepositoryByName(&repo, repo.Name)
 
 	return nil
 }

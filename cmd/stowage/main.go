@@ -53,6 +53,12 @@ func main() {
 			Action:  cmdRun,
 		},
 		{
+			Name:    "repo-add",
+			Aliases: []string{"ra"},
+			Usage:   "Add a repository to the system by URL",
+			Action:  cmdRepoAdd,
+		},
+		{
 			Name:    "repo-list",
 			Aliases: []string{"rl"},
 			Usage:   "List known repositories",
