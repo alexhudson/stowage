@@ -96,12 +96,19 @@ func cmdRun(c *cli.Context) error {
 	}
 	args := spec.runCommandSlice()
 
+	furtherArgs := c.Args()[1:]
+	if furtherArgs[0] == "--" {
+		furtherArgs = furtherArgs[1:]
+	}
+	for _, arg := range furtherArgs {
+		args = append(args, arg)
+	}
+
 	binary, lookErr := exec.LookPath("docker")
 	if lookErr != nil {
 		panic(lookErr)
 	}
 
-	// TODO - really should clean this!
 	env := os.Environ()
 
 	execErr := syscall.Exec(binary, args, env)
