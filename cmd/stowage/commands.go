@@ -123,7 +123,7 @@ func cmdRepoAdd(c *cli.Context) error {
 	var repo Repository
 
 	uri := c.Args().Get(0)
-	response, _ := http.Get(uri + "_stowage.json")
+	response, _ := http.Get(uri + "stowage.json")
 	buf, _ := ioutil.ReadAll(response.Body)
 	json.Unmarshal(buf, &repo)
 	repo.URI = uri
