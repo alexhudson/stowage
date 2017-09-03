@@ -1,3 +1,10 @@
+
+[![Release](https://img.shields.io/github/release/alexhudson/stowage.svg?style=flat-square)](https://github.com/alexhudson/stowage/releases/latest)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alexhudson/stowage?style=flat-square)](https://goreportcard.com/report/github.com/alexhudson/stowage)
+[![SayThanks.io](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg?style=flat-square)](https://saythanks.io/to/alexhudson)
+[![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=flat-square)](https://github.com/goreleaser)
+
 # Synopsis
 
 **stowage** is a very simple package-manager-alike for Docker containers that wrap cli tools. The idea is not to replace package management; this is largely a development-environment convenience to bring together tools in a relatively simple way.
@@ -5,6 +12,8 @@
 My primary use case is development teams and CI pipelines. By making development tools available as containers, they can be easily shared and re-used by others developers and CI alike - stowage makes this process simpler, which in turn encourages further such tools and sharing to occur.
 
 This is really not a production environment tool; the use case is not so strong there anyway, but the fundamental use of the root account and the various little conveniences are largely inappropriate and could lead to security issues. However, I don't think there's anything wrong with creating tools to query/manipulate the production environment using stowage.
+
+This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. We appreciate your contribution. Please refer to our [contributing guidelines](CONTRIBUTING.md).
 
 # Installation
 
