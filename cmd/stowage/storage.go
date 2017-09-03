@@ -9,6 +9,7 @@ import (
 
 type storage struct {
 	specDir string
+	repoDir string
 }
 
 func createStorage() storage {
@@ -19,8 +20,17 @@ func createStorage() storage {
 
 	s := storage{
 		specDir: filepath.Join(prefix, "share/stowage/spec/"),
+		repoDir: filepath.Join(prefix, "share/stowage/repo/"),
 	}
 	return s
+}
+
+func (s *storage) getRepofilePath(repo *Repository) string {
+	return s.getRepofilePathByName(repo.Name)
+}
+
+func (s *storage) getRepofilePathByName(name string) string {
+	return filepath.Join(s.repoDir, name)
 }
 
 func (s *storage) getSpecfilePath(spec *Specification) string {
@@ -57,7 +67,11 @@ func (s *storage) saveSpecification(spec *Specification) error {
 }
 
 func (s *storage) loadSpecification(path string) (Specification, error) {
-	data, err := ioutil.ReadFile(path)
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return Specification{}, err
+	}
+	data, err := ioutil.ReadFile(absPath)
 	if err != nil {
 		return Specification{}, err
 	}

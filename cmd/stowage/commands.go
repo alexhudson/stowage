@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"syscall"
@@ -33,23 +36,17 @@ func cmdGetStarted(c *cli.Context) error {
 }
 
 func cmdInstall(c *cli.Context) error {
-	store := createStorage()
-	name := c.Args().First()
-
-	spec, err := store.loadSpecification(name)
-	if err != nil {
-		spec = Specification{
-			Name:    name,
-			Image:   name,
-			Command: "",
-		}
+	installer := Installer{
+		Request: c.Args().First(),
 	}
-	store.saveSpecification(&spec)
 
-	binary := Binary{name: spec.Name, spec: spec}
-	binary.install()
+	if !installer.setup() {
+		fmt.Printf("ERROR: Don't know how to install %s\n", installer.Request)
+		return nil
+	}
 
-	fmt.Printf("%s installed\n", spec.Name)
+	_ = installer.run()
+
 	return nil
 }
 
@@ -58,7 +55,7 @@ func cmdSelfInstall(c *cli.Context) error {
 
 	store.saveSpecification(&selfSpec)
 
-	binary := Binary{name: "stowage", spec: selfSpec}
+	binary := Binary{name: "stowage", spec: &selfSpec}
 	binary.install()
 
 	return nil
@@ -112,5 +109,66 @@ func cmdRun(c *cli.Context) error {
 		panic(execErr)
 	}
 
+	return nil
+}
+
+func cmdRepoAdd(c *cli.Context) error {
+	var repo Repository
+
+	uri := c.Args().Get(0)
+	response, _ := http.Get(uri + "_stowage.json")
+	buf, _ := ioutil.ReadAll(response.Body)
+	json.Unmarshal(buf, &repo)
+	repo.URI = uri
+
+	store := createStorage()
+	store.saveRepositoryByName(&repo, repo.Name)
+
+	return nil
+}
+
+func cmdRepoScan(c *cli.Context) error {
+	repoDir := RepositoryDir{
+		Path: c.Args().Get(0),
+	}
+
+	repo := repoDir.getRepository()
+	if repo.Name == "" {
+		repo.Name = c.Args().Get(1)
+	}
+
+	repoDir.scan()
+	repoDir.save()
+
+	return nil
+}
+
+func cmdRepoList(c *cli.Context) error {
+	store := createStorage()
+
+	repos := store.listRepositories()
+
+	for _, repo := range repos {
+		fmt.Println(repo)
+	}
+
+	return nil
+}
+
+func cmdSearch(c *cli.Context) error {
+	store := createStorage()
+
+	repos := store.listRepositories()
+	term := c.Args().Get(0)
+
+	var result []RepositoryEntry
+	for _, repoName := range repos {
+		repo, _ := store.loadRepositoryByName(repoName)
+		result = repo.search(term)
+
+		for _, hit := range result {
+			fmt.Println(repo.Name + ":" + hit.Name + "\t" + hit.Description)
+		}
+	}
 	return nil
 }
