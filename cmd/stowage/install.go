@@ -62,14 +62,11 @@ func (i *Installer) setup() bool {
 func (i *Installer) loadSpecFromFie(path string) bool {
 	store := createStorage()
 	spec, err := store.loadSpecification(path)
-	fmt.Println("Loading from file")
 	if err != nil {
-		fmt.Println("Failure!")
 		return false
 	}
 
 	i.Spec = &spec
-	fmt.Println("Success!")
 	return true
 }
 
