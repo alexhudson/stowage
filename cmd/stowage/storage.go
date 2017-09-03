@@ -67,7 +67,11 @@ func (s *storage) saveSpecification(spec *Specification) error {
 }
 
 func (s *storage) loadSpecification(path string) (Specification, error) {
-	data, err := ioutil.ReadFile(path)
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return Specification{}, err
+	}
+	data, err := ioutil.ReadFile(absPath)
 	if err != nil {
 		return Specification{}, err
 	}

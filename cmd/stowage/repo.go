@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // RepositoryEntry represents a command we can install
@@ -46,4 +47,35 @@ func (r *Repository) addSpecification(s *Specification) {
 	if !replaced {
 		r.Listing = append(r.Listing, entry)
 	}
+}
+
+func (r *Repository) getURLForSpec(name string) string {
+	return r.URI + "/" + name + ".json"
+}
+
+func (r *Repository) search(term string) []RepositoryEntry {
+	result := make([]RepositoryEntry, 0)
+
+	var include bool
+	includeDefault := false
+	if strings.Index(r.Name, term) > -1 {
+		includeDefault = true
+	}
+
+	for _, entry := range r.Listing {
+		include = includeDefault
+
+		if strings.Index(entry.Name, term) > -1 {
+			include = true
+		}
+		if strings.Index(entry.Description, term) > -1 {
+			include = true
+		}
+
+		if include {
+			result = append(result, entry)
+		}
+	}
+
+	return result
 }

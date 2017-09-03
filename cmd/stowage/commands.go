@@ -36,23 +36,17 @@ func cmdGetStarted(c *cli.Context) error {
 }
 
 func cmdInstall(c *cli.Context) error {
-	store := createStorage()
-	name := c.Args().First()
-
-	spec, err := store.loadSpecification(name)
-	if err != nil {
-		spec = Specification{
-			Name:    name,
-			Image:   name,
-			Command: "",
-		}
+	installer := Installer{
+		Request: c.Args().First(),
 	}
-	store.saveSpecification(&spec)
 
-	binary := Binary{name: spec.Name, spec: spec}
-	binary.install()
+	if !installer.setup() {
+		fmt.Printf("ERROR: Don't know how to install %s\n", installer.Request)
+		return nil
+	}
 
-	fmt.Printf("%s installed\n", spec.Name)
+	_ = installer.run()
+
 	return nil
 }
 
@@ -61,7 +55,7 @@ func cmdSelfInstall(c *cli.Context) error {
 
 	store.saveSpecification(&selfSpec)
 
-	binary := Binary{name: "stowage", spec: selfSpec}
+	binary := Binary{name: "stowage", spec: &selfSpec}
 	binary.install()
 
 	return nil
@@ -158,5 +152,23 @@ func cmdRepoList(c *cli.Context) error {
 		fmt.Println(repo)
 	}
 
+	return nil
+}
+
+func cmdSearch(c *cli.Context) error {
+	store := createStorage()
+
+	repos := store.listRepositories()
+	term := c.Args().Get(0)
+
+	var result []RepositoryEntry
+	for _, repoName := range repos {
+		repo, _ := store.loadRepositoryByName(repoName)
+		result = repo.search(term)
+
+		for _, hit := range result {
+			fmt.Println(repo.Name + ":" + hit.Name + "\t" + hit.Description)
+		}
+	}
 	return nil
 }

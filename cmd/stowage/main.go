@@ -17,16 +17,10 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:    "get-started",
-			Aliases: []string{"gi"},
-			Usage:   "Output a shell script to self-install stowage",
-			Action:  cmdGetStarted,
-		},
-		{
-			Name:    "self-install",
-			Aliases: []string{"si"},
-			Usage:   "Install a wrapper for stowage itself",
-			Action:  cmdSelfInstall,
+			Name:    "search",
+			Aliases: []string{"s"},
+			Usage:   "Search for a wrapper via the installed repositories",
+			Action:  cmdSearch,
 		},
 		{
 			Name:    "install",
@@ -69,6 +63,18 @@ func main() {
 			Aliases: []string{"rs"},
 			Usage:   "Scan a directory and create a repository file",
 			Action:  cmdRepoScan,
+		},
+		{
+			Name:    "get-started",
+			Aliases: []string{"gi"},
+			Usage:   "Output a shell script to self-install stowage",
+			Action:  cmdGetStarted,
+		},
+		{
+			Name:    "self-install",
+			Aliases: []string{"si"},
+			Usage:   "Install a wrapper for stowage itself",
+			Action:  cmdSelfInstall,
 		},
 	}
 

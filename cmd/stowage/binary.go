@@ -10,7 +10,7 @@ import (
 // Binary is a type
 type Binary struct {
 	name string
-	spec Specification
+	spec *Specification
 }
 
 func (b *Binary) getWrapperPath() string {
