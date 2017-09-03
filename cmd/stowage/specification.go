@@ -21,9 +21,10 @@ type runtimeMount struct {
 
 // Specification is a type
 type Specification struct {
-	Name    string
-	Image   string
-	Command string
+	Name        string
+	Image       string
+	Command     string
+	Environment []string
 
 	Options runtimeOptions
 	Mounts  []runtimeMount
@@ -38,6 +39,7 @@ func (s *Specification) create(name string) Specification {
 			Privileged:  true,
 			Readonly:    false,
 		},
+		Environment: []string{},
 	}
 	return spec
 }
@@ -86,6 +88,10 @@ func (s *Specification) runCommandSlice() []string {
 			}
 			cmd = append(cmd, "-v", source+":"+mount.Guest)
 		}
+	}
+
+	for _, variable := range s.Environment {
+		cmd = append(cmd, "-e", variable)
 	}
 
 	cmd = append(cmd, s.getImage())
