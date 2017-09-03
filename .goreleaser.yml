@@ -17,3 +17,11 @@ archive:
   files:
     - LICENSE
     - README.md
+
+brew:
+  github:
+    owner: alexhudson
+    name: homebrew-stowage
+  folder: Formula
+  homepage: "https://stowage.org/"
+  description: "Package manager-alike for wrapping Docker containers as binaries"
