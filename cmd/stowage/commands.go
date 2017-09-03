@@ -128,6 +128,11 @@ func cmdRepoAdd(c *cli.Context) error {
 	json.Unmarshal(buf, &repo)
 	repo.URI = uri
 
+	if repo.Name == "" {
+		fmt.Println("ERROR: Repository is misconfigured; 'name' mising")
+		return nil
+	}
+
 	store := createStorage()
 	store.saveRepositoryByName(&repo, repo.Name)
 
