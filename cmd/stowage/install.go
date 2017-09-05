@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"strings"
 )
 
@@ -45,21 +46,52 @@ func (i *Installer) setup() bool {
 		}
 	}
 
-	_ = i.loadSpecFromFie(name)
+	_ = i.loadSpecFromFile(name)
 
 	if i.Spec == nil {
+		// we assume this is an image reference somehow
+
+		// try fetching it; if this fails later things may not work but
+		// that's not necessarily fatal
+		fetchCmd := exec.Command("docker", "image", "pull", name)
+		fetchCmd.Run()
+
+		// check if we have a custom label with our specfile.
+		specCmd := exec.Command("docker", "inspect", "--format",
+			"{{ index .Config.Labels \"org.stowage.spec\" }}",
+			name,
+		)
+		imgSpec, err := specCmd.Output()
+		if err != nil {
+			panic(err)
+		}
+
 		spec := Specification{
 			Name:    name,
 			Image:   name,
 			Command: "",
 		}
+
+		if len(imgSpec) > 0 {
+			// if a spec file was provided via the image, let's load that up
+			spec.fromJSON(imgSpec)
+		}
+
 		i.Spec = &spec
+	}
+
+	cliName := strings.LastIndex(name, "/")
+	if (i.Spec != nil) && (cliName > -1) && (i.Spec.Name == name) {
+		// this is a reference to an image in a registry - we want to use
+		// the project name as cli name. Only do this if we haven't already
+		// learned a better name somewhere (e.g. Docker label)
+		i.Spec.Name = name[cliName+1:]
 	}
 
 	return true
 }
 
-func (i *Installer) loadSpecFromFie(path string) bool {
+func (i *Installer) loadSpecFromFile(path string) bool {
 	store := createStorage()
 	spec, err := store.loadSpecification(path)
 	if err != nil {
@@ -78,7 +110,6 @@ func (i *Installer) loadSpecFromURL(url string) bool {
 		fmt.Println("Specfile missing from repository!")
 		return false
 	}
-	fmt.Println(response.Body)
 	buf, _ := ioutil.ReadAll(response.Body)
 	json.Unmarshal(buf, &spec)
 
