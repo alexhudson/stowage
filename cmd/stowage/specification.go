@@ -85,6 +85,7 @@ func (s *Specification) runCommandSlice() []string {
 			source := mount.Host
 			if mount.Cwd {
 				source = "`pwd`"
+				cmd = append(cmd, "-w="+mount.Guest)
 			}
 			cmd = append(cmd, "-v", source+":"+mount.Guest)
 		}
