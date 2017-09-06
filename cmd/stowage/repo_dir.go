@@ -12,7 +12,7 @@ type RepositoryDir struct {
 }
 
 func (rd *RepositoryDir) getRepositoryFilePath() string {
-	return filepath.Join(rd.Path, "_stowage.json")
+	return filepath.Join(rd.Path, "stowage.json")
 }
 
 func (rd *RepositoryDir) getRepository() Repository {
@@ -30,7 +30,7 @@ func (rd *RepositoryDir) scan() {
 	files, _ := ioutil.ReadDir(rd.Path)
 
 	for _, f := range files {
-		if f.Name() != "_stowage.json" {
+		if f.Name() != "stowage.json" {
 			spec, err := store.loadSpecification(filepath.Join(rd.Path, f.Name()))
 			if err == nil {
 				rd.Repo.addSpecification(&spec)

@@ -21,25 +21,13 @@ type runtimeMount struct {
 
 // Specification is a type
 type Specification struct {
-	Name    string
-	Image   string
-	Command string
+	Name        string
+	Image       string
+	Command     string
+	Environment []string
 
 	Options runtimeOptions
 	Mounts  []runtimeMount
-}
-
-func (s *Specification) create(name string) Specification {
-	spec := Specification{
-		Name: name,
-		Options: runtimeOptions{
-			Tty:         true,
-			Interactive: true,
-			Privileged:  true,
-			Readonly:    false,
-		},
-	}
-	return spec
 }
 
 func (s *Specification) fromJSON(byt []byte) error {
@@ -83,9 +71,14 @@ func (s *Specification) runCommandSlice() []string {
 			source := mount.Host
 			if mount.Cwd {
 				source = "`pwd`"
+				cmd = append(cmd, "-w="+mount.Guest)
 			}
 			cmd = append(cmd, "-v", source+":"+mount.Guest)
 		}
+	}
+
+	for _, variable := range s.Environment {
+		cmd = append(cmd, "-e", variable)
 	}
 
 	cmd = append(cmd, s.getImage())

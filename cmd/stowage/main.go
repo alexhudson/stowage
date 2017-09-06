@@ -65,6 +65,12 @@ func main() {
 			Action:  cmdRepoScan,
 		},
 		{
+			Name:    "install-spec",
+			Aliases: []string{"is"},
+			Usage:   "Install a wrapper for a container from a defined spec file",
+			Action:  cmdInstallSpec,
+		},
+		{
 			Name:    "get-started",
 			Aliases: []string{"gi"},
 			Usage:   "Output a shell script to self-install stowage",

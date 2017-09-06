@@ -1,3 +1,10 @@
+
+[![Release](https://img.shields.io/github/release/alexhudson/stowage.svg?style=flat-square)](https://github.com/alexhudson/stowage/releases/latest)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alexhudson/stowage?style=flat-square)](https://goreportcard.com/report/github.com/alexhudson/stowage)
+[![SayThanks.io](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg?style=flat-square)](https://saythanks.io/to/alexhudson)
+[![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=flat-square)](https://github.com/goreleaser)
+
 # Synopsis
 
 **stowage** is a very simple package-manager-alike for Docker containers that wrap cli tools. The idea is not to replace package management; this is largely a development-environment convenience to bring together tools in a relatively simple way.
@@ -6,9 +13,11 @@ My primary use case is development teams and CI pipelines. By making development
 
 This is really not a production environment tool; the use case is not so strong there anyway, but the fundamental use of the root account and the various little conveniences are largely inappropriate and could lead to security issues. However, I don't think there's anything wrong with creating tools to query/manipulate the production environment using stowage.
 
+This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. We appreciate your contribution. Please refer to our [contributing guidelines](CONTRIBUTING.md).
+
 # Installation
 
-For now, I only really support Linux and MacOS systems - sorry, Windows users. 
+For now, I only really support Linux and MacOS systems - sorry, Windows users. I would love some feedback from Windows people about what they would need for it to work over there, though - nothing against Windows, I just don't have it :(
 
 ## General (works on all platforms)
 
@@ -62,7 +71,9 @@ This message shows that your installation appears to be working correctly.
 [.. etc ..]
 ```
 
-The install command can take a Docker image name (in which case it tries to choose some simple defaults), or a reference to a local JSON file (for more complex commands - there are some examples in the examples folder). In the future I also want to add an ability to refer to JSON file by URL.
+The install command can take a Docker image name (in which case it tries to choose some simple defaults), or URL - so long as Docker underneath will understand it. So, you can point to custom repositories, etc.
+
+stowage also has a "specfile" system. While the defaults for containers are as good as possible, it's not possible to work out how all containers should be invoked. These specfiles can also be used to install the command with the `install-spec` command. Developers working on containers can embed the specfile within the image; if this is done, stowage will pick it out and use it.
 
 # Motivation
 

@@ -13,6 +13,9 @@ build: ## Build a beta version
 install: ## Install to $GOPATH/src
 	go install ./cmd/...
 
+test: ## Run tests
+	go test ./cmd/stowage
+
 container: Dockerfile stowage ## Create a containerized version of stowage
 	docker build -t ealexhudson/stowage .
 
