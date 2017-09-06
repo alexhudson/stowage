@@ -33,7 +33,7 @@ func (i *Installer) setup() bool {
 		return i.loadSpecFromURL(name)
 	}
 
-	repoSep := strings.Index(name, ":")
+	repoSep := strings.Index(name, "\\")
 	if repoSep > -1 {
 		// this could be a repo reference
 		repo := name[0:repoSep]
