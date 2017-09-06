@@ -17,7 +17,7 @@ This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDU
 
 # Installation
 
-For now, I only really support Linux and MacOS systems - sorry, Windows users. 
+For now, I only really support Linux and MacOS systems - sorry, Windows users. I would love some feedback from Windows people about what they would need for it to work over there, though - nothing against Windows, I just don't have it :(
 
 ## General (works on all platforms)
 
@@ -71,7 +71,9 @@ This message shows that your installation appears to be working correctly.
 [.. etc ..]
 ```
 
-The install command can take a Docker image name (in which case it tries to choose some simple defaults), or a reference to a local JSON file (for more complex commands - there are some examples in the examples folder). In the future I also want to add an ability to refer to JSON file by URL.
+The install command can take a Docker image name (in which case it tries to choose some simple defaults), or URL - so long as Docker underneath will understand it. So, you can point to custom repositories, etc.
+
+stowage also has a "specfile" system. While the defaults for containers are as good as possible, it's not possible to work out how all containers should be invoked. These specfiles can also be used to install the command with the `install-spec` command. Developers working on containers can embed the specfile within the image; if this is done, stowage will pick it out and use it.
 
 # Motivation
 
