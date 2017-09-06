@@ -11,8 +11,9 @@ import (
 
 // Installer is used to figure out what is being requested and how to install
 type Installer struct {
-	Request string
-	Spec    *Specification
+	Request     string
+	RequestSpec string
+	Spec        *Specification
 }
 
 /* Requests can be a number of things:
@@ -25,60 +26,70 @@ If it doesn't look like a URL or repo reference, we try it as a local
 file. If that doesn't work, we assume it's a Docker hub reference.
 
 */
-func (i *Installer) setup() bool {
-	name := i.Request
 
-	if strings.Index(name, "://") > -1 {
+func (i *Installer) setup() bool {
+	if i.RequestSpec != "" {
+		return i.setupSpec()
+	}
+	return i.setupImage()
+}
+
+func (i *Installer) setupSpec() bool {
+	specname := i.RequestSpec
+
+	if strings.Index(specname, "://") > -1 {
 		// this is a URL
-		return i.loadSpecFromURL(name)
+		return i.loadSpecFromURL(specname)
 	}
 
-	repoSep := strings.Index(name, "\\")
+	repoSep := strings.Index(specname, "\\")
 	if repoSep > -1 {
 		// this could be a repo reference
-		repo := name[0:repoSep]
-		name = name[repoSep+1:]
+		repo := specname[0:repoSep]
+		specname = specname[repoSep+1:]
 
 		if strings.Index(repo, "/") == -1 {
 			// repo names cannot have slashes in them; this must be a
 			// docker hub reference!
-			return i.loadSpecFromRepo(repo, name)
+			return i.loadSpecFromRepo(repo, specname)
 		}
 	}
 
-	_ = i.loadSpecFromFile(name)
+	_ = i.loadSpecFromFile(specname)
 
-	if i.Spec == nil {
-		// we assume this is an image reference somehow
+	return i.Spec != nil
+}
 
-		// try fetching it; if this fails later things may not work but
-		// that's not necessarily fatal
-		fetchCmd := exec.Command("docker", "image", "pull", name)
-		fetchCmd.Run()
+func (i *Installer) setupImage() bool {
+	name := i.Request
 
-		// check if we have a custom label with our specfile.
-		specCmd := exec.Command("docker", "inspect", "--format",
-			"{{ index .Config.Labels \"org.stowage.spec\" }}",
-			name,
-		)
-		imgSpec, err := specCmd.Output()
-		if err != nil {
-			panic(err)
-		}
+	// try fetching image; if this fails later things may not work but
+	// that's not necessarily fatal
+	fetchCmd := exec.Command("docker", "image", "pull", name)
+	fetchCmd.Run()
 
-		spec := Specification{
-			Name:    name,
-			Image:   name,
-			Command: "",
-		}
-
-		if len(imgSpec) > 0 {
-			// if a spec file was provided via the image, let's load that up
-			spec.fromJSON(imgSpec)
-		}
-
-		i.Spec = &spec
+	// check if we have a custom label with our specfile.
+	specCmd := exec.Command("docker", "inspect", "--format",
+		"{{ index .Config.Labels \"org.stowage.spec\" }}",
+		name,
+	)
+	imgSpec, err := specCmd.Output()
+	if err != nil {
+		panic(err)
 	}
+
+	spec := Specification{
+		Name:    name,
+		Image:   name,
+		Command: "",
+	}
+
+	if len(imgSpec) > 0 {
+		// if a spec file was provided via the image, let's load that up
+		spec.fromJSON(imgSpec)
+	}
+
+	i.Spec = &spec
 
 	cliName := strings.LastIndex(name, "/")
 	if (i.Spec != nil) && (cliName > -1) && (i.Spec.Name == name) {
