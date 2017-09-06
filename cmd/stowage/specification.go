@@ -30,20 +30,6 @@ type Specification struct {
 	Mounts  []runtimeMount
 }
 
-func (s *Specification) create(name string) Specification {
-	spec := Specification{
-		Name: name,
-		Options: runtimeOptions{
-			Tty:         true,
-			Interactive: true,
-			Privileged:  true,
-			Readonly:    false,
-		},
-		Environment: []string{},
-	}
-	return spec
-}
-
 func (s *Specification) fromJSON(byt []byte) error {
 	if err := json.Unmarshal(byt, &s); err != nil {
 		panic(err)
