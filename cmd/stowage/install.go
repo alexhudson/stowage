@@ -68,23 +68,19 @@ func (i *Installer) setupImage() bool {
 	fetchCmd := exec.Command("docker", "image", "pull", name)
 	fetchCmd.Run()
 
-	// check if we have a custom label with our specfile.
-	specCmd := exec.Command("docker", "inspect", "--format",
-		"{{ index .Config.Labels \"org.stowage.spec\" }}",
-		name,
-	)
-	imgSpec, err := specCmd.Output()
-	if err != nil {
-		panic(err)
-	}
-
 	spec := Specification{
 		Name:    name,
 		Image:   name,
 		Command: "",
 	}
 
-	if len(imgSpec) > 0 {
+	// check if we have a custom label with our specfile.
+	specCmd := exec.Command("docker", "inspect", "--format",
+		"{{ index .Config.Labels \"org.stowage.spec\" }}",
+		name,
+	)
+	imgSpec, err := specCmd.Output()
+	if err == nil && len(imgSpec) > 0 {
 		// if a spec file was provided via the image, let's load that up
 		spec.fromJSON(imgSpec)
 	}
