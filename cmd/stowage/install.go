@@ -37,22 +37,9 @@ func (i *Installer) setup() bool {
 func (i *Installer) setupSpec() bool {
 	specname := i.RequestSpec
 
-	if strings.Index(specname, "://") > -1 {
+	if strings.Index(specname, "::") > -1 {
 		// this is a URL
 		return i.loadSpecFromURL(specname)
-	}
-
-	repoSep := strings.Index(specname, "\\")
-	if repoSep > -1 {
-		// this could be a repo reference
-		repo := specname[0:repoSep]
-		specname = specname[repoSep+1:]
-
-		if strings.Index(repo, "/") == -1 {
-			// repo names cannot have slashes in them; this must be a
-			// docker hub reference!
-			return i.loadSpecFromRepo(repo, specname)
-		}
 	}
 
 	_ = i.loadSpecFromFile(specname)
@@ -62,6 +49,15 @@ func (i *Installer) setupSpec() bool {
 
 func (i *Installer) setupImage() bool {
 	name := i.Request
+
+	// check this isn't in a repo first
+	repoSep := strings.Index(name, "::")
+	if repoSep > -1 {
+		repo := name[0:repoSep]
+		specname := name[repoSep+2:]
+
+		return i.loadSpecFromRepo(repo, specname)
+	}
 
 	// try fetching image; if this fails later things may not work but
 	// that's not necessarily fatal
@@ -80,7 +76,7 @@ func (i *Installer) setupImage() bool {
 		name,
 	)
 	imgSpec, err := specCmd.Output()
-	if err == nil && len(imgSpec) > 0 {
+	if err == nil && len(imgSpec) > 4 {
 		// if a spec file was provided via the image, let's load that up
 		spec.fromJSON(imgSpec)
 	}

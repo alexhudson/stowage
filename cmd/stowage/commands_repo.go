@@ -69,7 +69,7 @@ func cmdSearch(c *cli.Context) error {
 		result = repo.search(term)
 
 		for _, hit := range result {
-			fmt.Println(repo.Name + "\\" + hit.Name + "\t" + hit.Description)
+			fmt.Println(repo.Name + "::" + hit.Name + "\t" + hit.Description)
 		}
 	}
 	return nil
