@@ -134,6 +134,10 @@ func (i *Installer) loadSpecFromRepo(repoName string, name string) bool {
 	return i.loadSpecFromURL(urlForSpec)
 }
 
+func (i *Installer) setCommandName(name string) {
+	i.Spec.Name = name
+}
+
 func (i *Installer) run() bool {
 	store := createStorage()
 	store.saveSpecification(i.Spec)

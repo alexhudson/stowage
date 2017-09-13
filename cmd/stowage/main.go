@@ -17,16 +17,17 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:    "search",
-			Aliases: []string{"s"},
-			Usage:   "Search for a wrapper via the installed repositories",
-			Action:  cmdSearch,
-		},
-		{
 			Name:    "install",
 			Aliases: []string{"i"},
 			Usage:   "Install a wrapper for a container",
 			Action:  cmdInstall,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "command",
+					Value: "",
+					Usage: "name for the command",
+				},
+			},
 		},
 		{
 			Name:    "uninstall",
@@ -47,22 +48,32 @@ func main() {
 			Action:  cmdRun,
 		},
 		{
-			Name:    "repo-add",
-			Aliases: []string{"ra"},
-			Usage:   "Add a repository to the system by URL",
-			Action:  cmdRepoAdd,
+			Name:     "search",
+			Aliases:  []string{"s"},
+			Category: "Repositories",
+			Usage:    "Search for a wrapper via the installed repositories",
+			Action:   cmdSearch,
 		},
 		{
-			Name:    "repo-list",
-			Aliases: []string{"rl"},
-			Usage:   "List known repositories",
-			Action:  cmdRepoList,
+			Name:     "repo-add",
+			Aliases:  []string{"ra"},
+			Category: "Repositories",
+			Usage:    "Add a repository to the system by URL",
+			Action:   cmdRepoAdd,
 		},
 		{
-			Name:    "repo-scan",
-			Aliases: []string{"rs"},
-			Usage:   "Scan a directory and create a repository file",
-			Action:  cmdRepoScan,
+			Name:     "repo-list",
+			Aliases:  []string{"rl"},
+			Category: "Repositories",
+			Usage:    "List known repositories",
+			Action:   cmdRepoList,
+		},
+		{
+			Name:     "repo-scan",
+			Aliases:  []string{"rs"},
+			Category: "Repositories",
+			Usage:    "Scan a directory and create a repository file",
+			Action:   cmdRepoScan,
 		},
 		{
 			Name:    "install-spec",
