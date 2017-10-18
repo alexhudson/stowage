@@ -49,6 +49,7 @@ func (i *Installer) setupSpec() bool {
 
 func (i *Installer) setupImage() bool {
 	name := i.Request
+	image := i.Request
 
 	// check this isn't in a repo first
 	repoSep := strings.Index(name, "::")
@@ -59,6 +60,17 @@ func (i *Installer) setupImage() bool {
 		return i.loadSpecFromRepo(repo, specname)
 	}
 
+	// handle tags or digests - we want to remove this from
+	// the name, but keep the reference on the image
+	tagSep := strings.Index(name, ":")
+	if tagSep > -1 {
+		name = name[0:tagSep]
+	}
+	digestSep := strings.Index(name, "@")
+	if digestSep > -1 {
+		name = name[0:digestSep]
+	}
+
 	// try fetching image; if this fails later things may not work but
 	// that's not necessarily fatal
 	fetchCmd := exec.Command("docker", "image", "pull", name)
@@ -66,7 +78,7 @@ func (i *Installer) setupImage() bool {
 
 	spec := Specification{
 		Name:    name,
-		Image:   name,
+		Image:   image,
 		Command: "",
 	}
 
