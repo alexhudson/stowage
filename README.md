@@ -71,7 +71,27 @@ This message shows that your installation appears to be working correctly.
 [.. etc ..]
 ```
 
-The install command can take a Docker image name (in which case it tries to choose some simple defaults), or URL - so long as Docker underneath will understand it. So, you can point to custom repositories, etc.
+The install command can take a Docker image name (in which case it tries to choose some simple defaults), or URL - so long as Docker underneath will understand it. So, you can point to custom repositories, etc. You can also manually set the default entrypoint, which means that you can often easily use standard containers as commands even when they're not developed with that in mind. For example, we can use the standard Node container to host `npm` conveniently:
+
+```
+$ sudo stowage install node:6 --command npm --entrypoint npm
+npm installed
+$ which npm
+/usr/local/bin/npm
+$ npm --version
+3.10.10
+$ ls -l package.json
+ls: cannot access 'package.json': No such file or directory
+$ npm init -f
+npm info it worked if it ends with ok
+npm info using npm@3.10.10
+npm info using node@v6.11.4
+npm WARN using --force I sure hope you know what you are doing.
+npm info init written successfully
+npm info ok 
+$ ls -l package.json
+-rw-r--r--. 1 root root 218 Oct 18 22:15 package.json
+```
 
 stowage also has a "specfile" system. While the defaults for containers are as good as possible, it's not possible to work out how all containers should be invoked. These specfiles can also be used to install the command with the `install-spec` command. Developers working on containers can embed the specfile within the image; if this is done, stowage will pick it out and use it.
 

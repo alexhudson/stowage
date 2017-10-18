@@ -76,11 +76,7 @@ func (i *Installer) setupImage() bool {
 	fetchCmd := exec.Command("docker", "image", "pull", name)
 	fetchCmd.Run()
 
-	spec := Specification{
-		Name:    name,
-		Image:   image,
-		Command: "",
-	}
+	spec := i.createDefaultSpec(name, image)
 
 	// check if we have a custom label with our specfile.
 	specCmd := exec.Command("docker", "inspect", "--format",
@@ -104,6 +100,28 @@ func (i *Installer) setupImage() bool {
 	}
 
 	return true
+}
+
+func (i *Installer) createDefaultSpec(name string, image string) Specification {
+	spec := Specification{
+		Name:    name,
+		Image:   image,
+		Command: "",
+		Options: runtimeOptions{
+			Interactive: true,
+			Tty:         true,
+			Privileged:  true,
+			Readonly:    false,
+		},
+		Mounts: []runtimeMount{
+			{
+				Cwd:   true,
+				Guest: "/root",
+			},
+		},
+	}
+
+	return spec
 }
 
 func (i *Installer) loadSpecFromFile(path string) bool {
