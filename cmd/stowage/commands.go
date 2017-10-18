@@ -41,9 +41,15 @@ func cmdInstall(c *cli.Context) error {
 		fmt.Printf("ERROR: Don't know how to install %s\n", installer.Request)
 		return nil
 	}
+
 	command := c.String("command")
 	if command != "" {
 		installer.setCommandName(command)
+	}
+
+	entrypoint := c.String("entrypoint")
+	if entrypoint != "" {
+		installer.setEntrypoint(entrypoint)
 	}
 
 	_ = installer.run()

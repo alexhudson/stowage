@@ -150,6 +150,10 @@ func (i *Installer) setCommandName(name string) {
 	i.Spec.Name = name
 }
 
+func (i *Installer) setEntrypoint(entrypoint string) {
+	i.Spec.Command = entrypoint
+}
+
 func (i *Installer) run() bool {
 	store := createStorage()
 	store.saveSpecification(i.Spec)

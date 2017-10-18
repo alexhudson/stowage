@@ -27,6 +27,11 @@ func main() {
 					Value: "",
 					Usage: "name for the command",
 				},
+				cli.StringFlag{
+					Name:  "entrypoint",
+					Value: "",
+					Usage: "image entrypoint for the command",
+				},
 			},
 		},
 		{
