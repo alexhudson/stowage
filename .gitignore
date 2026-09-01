@@ -1,4 +1,5 @@
 /.vscode/*
 /vendor/*
 /stowage
+/stowage.exe
 /dist

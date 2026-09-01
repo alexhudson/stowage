@@ -17,7 +17,7 @@ This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDU
 
 # Installation
 
-For now, I only really support Linux and MacOS systems - sorry, Windows users. I would love some feedback from Windows people about what they would need for it to work over there, though - nothing against Windows, I just don't have it :(
+Linux, MacOS and Windows are all supported.
 
 ## General (works on all platforms)
 
@@ -45,6 +45,14 @@ $ sudo docker run ealexhudson/stowage get-started | sudo sh
 
 (If you don't like the idea of piping unknown stuff to a sudo shell, good for you! Just examine the output for the actual docker bootstrapping command.)
 
+## Windows
+
+Download `stowage.exe` from the [stowage releases](https://github.com/alexhudson/stowage/releases/latest) page and put it somewhere convenient, e.g. `%LOCALAPPDATA%\stowage\bin`. Add that directory to your `PATH` (once, via System Properties or `setx PATH "%PATH%;%LOCALAPPDATA%\stowage\bin"`).
+
+Wrapped commands work a bit differently here than on Linux/MacOS: instead of generating a shell script per command, `stowage install` creates an NTFS hard link of `stowage.exe` under the wrapped command's name (e.g. `hello-world.exe`) in `%LOCALAPPDATA%\stowage\bin`. When that link is run, it recognizes it wasn't invoked as `stowage` and dispatches straight to `docker` with the right arguments instead of showing the `stowage` CLI. No admin rights are required - everything installs per-user under `%LOCALAPPDATA%\stowage`.
+
+Docker Desktop (or another Docker install with `docker` on `PATH`) is assumed to already be present.
+
 # Getting started
 
 Once you've installed `stowage` and make it available, you can use it to list all the stowed containers you already have. Usually, this list will be empty, although if you used a container to self-install stowage then it will list itself!
@@ -54,16 +62,16 @@ $ stowage list
 stowage
 ```
 
-On Linux, you may need to use `sudo` to run some stowage commands. Generally, `list` is fine, but you will need it to `install` or `uninstall` - unless you run as root (hopefully not!) or set up some specific permissions for it. You will also need to run the wrapped commands under `sudo` if your user does not have permission to start docker containers.
+On Linux and MacOS, `install`/`uninstall` don't need `sudo` by default: stowage installs into `$HOME/.local/bin` (and keeps its spec/repo state under `$HOME/.local/share/stowage`) for the current user, so just make sure `$HOME/.local/bin` is on your `PATH`. If you run stowage as root (e.g. via `sudo`), it installs system-wide into `/usr/local` instead, matching the traditional behaviour. Either way, you'll still need to run the wrapped commands under `sudo` if your user does not otherwise have permission to talk to the Docker daemon.
 
 Let's try installing the generic Docker `hello-world` image, and see how this works:
 
 ```
-$ sudo stowage install hello-world
-$ sudo stowage list
+$ stowage install hello-world
+$ stowage list
 stowage
 hello-world
-$ sudo hello-world
+$ hello-world
 
 Hello from Docker!
 This message shows that your installation appears to be working correctly.
@@ -119,18 +127,13 @@ Point `ENTRYPOINT` at your wrapped executable, and give `CMD` some reasonable de
 
 There are two versions of stowage; a proof-of-concept script written in Python that served as the basis of the project, and the new utility written in Go. There is no build required on the Python side, only the Go.
 
-First, check out the source to your usual location within `$GOPATH`. You can then run `make` to see the various targets available.
+Check out the source anywhere you like - stowage uses Go modules, so it does not need to live under `$GOPATH`. You can then run `make` to see the various targets available.
 
-stowage requires `golang` to be installed, and also uses `dep` for dependency management. Install all the required dependencies simply by running:
+stowage requires `golang` to be installed. Fetch the required dependencies by running:
 
 ```
 $ make setup
 ```
-
-This should complete successfully, but if not:
-
-* `dep: No such file or directory` - this means you don't have the golang `dep` utility installed. This can be resolved with `brew install dep` or the equivalent on your platform.
-* `gometalinter: No such file or directory` - this means that `$GOPATH/bin/` is not in your `$PATH`, and the build script cannot find the dependency.
 
 You can then build stowage simply by running:
 
@@ -138,7 +141,7 @@ You can then build stowage simply by running:
 $ make build
 ```
 
-It is created in the top-level directory; test your new utility by running `./stowage -h` and verify that the help is output.
+It is created in the top-level directory; test your new utility by running `./stowage -h` (or `.\stowage.exe -h` on Windows) and verify that the help is output.
 
 ## Installation after you built from source
 
@@ -146,7 +149,7 @@ NOTE this is not the general installation instruction; this is just if you have 
 
 There are three different options for installation:
 
-### Install the stowage utility into $GOPATH
+### Install the stowage utility into $GOPATH/bin
 
 This is achieved simply by running:
 
@@ -184,13 +187,11 @@ $ docker run ealexhudson/stowage get-started | sudo sh
 
 ## Security
 
-There's no clear security model for this tool yet - it relies a lot on the premise of root access. In the future, I'd like to significantly limit this as far as possible. Particularly on systems where access to docker is based on group membership or SELinux labels, there's no massive reason for this to be root.
-
-Also, the need for stowage to access the root filesystem is mainly for it to install the various docker wrapper scripts that it creates - the more security conscious are probably willing to adjust $PATH instead, and that should be a supported option.
+There's no clear security model for this tool yet, though it no longer relies on root access by default: stowage installs per-user into `$HOME/.local` (or `%LOCALAPPDATA%\stowage` on Windows) unless it's run as root, in which case it falls back to the traditional system-wide `/usr/local`. Particularly on systems where access to docker is based on group membership or SELinux labels, there's no massive reason for this to be root.
 
 ## Tests
 
-Need to write some :-)
+Run `make test` (or `go test ./cmd/stowage`) to run the unit tests.
 
 ## Contributors
 

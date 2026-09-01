@@ -13,16 +13,19 @@ type storage struct {
 }
 
 func createStorage() storage {
-	prefix := "/usr/local"
-	if _, err := os.Stat("/stowage/install-tree"); !os.IsNotExist(err) {
-		prefix = "/stowage/install-tree"
-	}
+	prefix := installPrefix()
 
-	s := storage{
-		specDir: filepath.Join(prefix, "share/stowage/spec/"),
-		repoDir: filepath.Join(prefix, "share/stowage/repo/"),
+	return newStorage(
+		filepath.Join(prefix, "share", "stowage", "spec"),
+		filepath.Join(prefix, "share", "stowage", "repo"),
+	)
+}
+
+func newStorage(specDir string, repoDir string) storage {
+	return storage{
+		specDir: specDir,
+		repoDir: repoDir,
 	}
-	return s
 }
 
 func (s *storage) getRepofilePath(repo *Repository) string {
@@ -90,7 +93,7 @@ func (s *storage) loadSpecificationByName(name string) (Specification, error) {
 func (s *storage) removeSpecification(spec *Specification) error {
 	specFilePath := s.getSpecfilePath(spec)
 
-	if err := os.Remove(specFilePath); os.IsExist(err) {
+	if err := os.Remove(specFilePath); err != nil && !os.IsNotExist(err) {
 		fmt.Println("Couldn't remove specfile!")
 	}
 

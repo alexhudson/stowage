@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 )
 
@@ -70,7 +71,7 @@ func (s *Specification) runCommandSlice() []string {
 		for _, mount := range s.Mounts {
 			source := mount.Host
 			if mount.Cwd {
-				source = "`pwd`"
+				source, _ = os.Getwd()
 				cmd = append(cmd, "-w="+mount.Guest)
 			}
 			cmd = append(cmd, "-v", source+":"+mount.Guest)
