@@ -9,6 +9,8 @@ import (
 var version = "dev"
 
 func main() {
+	tryDispatch()
+
 	app := cli.NewApp()
 	app.Name = "stowage"
 	app.Version = version

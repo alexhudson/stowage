@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 
 	"github.com/urfave/cli"
 )
@@ -120,7 +119,7 @@ func cmdRun(c *cli.Context) error {
 	args := spec.runCommandSlice()
 
 	furtherArgs := c.Args()[1:]
-	if furtherArgs[0] == "--" {
+	if len(furtherArgs) > 0 && furtherArgs[0] == "--" {
 		furtherArgs = furtherArgs[1:]
 	}
 	for _, arg := range furtherArgs {
@@ -132,12 +131,27 @@ func cmdRun(c *cli.Context) error {
 		panic(lookErr)
 	}
 
-	env := os.Environ()
-
-	execErr := syscall.Exec(binary, args, env)
-	if execErr != nil {
-		panic(execErr)
-	}
+	os.Exit(runCommand(binary, args[1:]))
 
 	return nil
+}
+
+// runCommand runs name with args, connecting it to the parent's stdio, and
+// returns its exit code.
+func runCommand(name string, args []string) int {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err == nil {
+		return 0
+	}
+
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		return exitErr.ExitCode()
+	}
+
+	panic(err)
 }
