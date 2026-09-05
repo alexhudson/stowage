@@ -1,26 +1,47 @@
+version: 2
+
 project_name: stowage
 
 builds:
   - binary: stowage
     main: ./cmd/stowage
+    env:
+      - CGO_ENABLED=0
     goos:
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
 
-archive:
-  format: tar.gz
-  replacements:
-    amd64: 64-bit
-    darwin: macOS
-  files:
-    - LICENSE
-    - README.md
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
 
-brew:
-  github:
-    owner: alexhudson
-    name: homebrew-stowage
-  homepage: "https://stowage.org/"
-  description: "Package manager-alike for wrapping Docker containers as binaries"
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+# brews:
+#   - repository:
+#       owner: alexhudson
+#       name: homebrew-stowage
+#       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+#     homepage: "https://stowage.org/"
+#     description: "Package manager-alike for wrapping Docker containers as binaries"
