@@ -89,6 +89,19 @@ func main() {
 			Action:  cmdInstallSpec,
 		},
 		{
+			Name:     "venv",
+			Category: "Environments",
+			Usage:    "Create a project-local environment directory (like python -m venv)",
+			Action:   cmdVenvCreate,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "manifest",
+					Value: "",
+					Usage: "manifest file to bootstrap the environment from (default: " + defaultVenvManifestName + ")",
+				},
+			},
+		},
+		{
 			Name:    "get-started",
 			Aliases: []string{"gi"},
 			Usage:   "Output a shell script to self-install stowage",

@@ -81,8 +81,7 @@ func tryDispatch() {
 		return
 	}
 
-	store := createStorage()
-	spec, err := store.loadSpecificationByName(self)
+	spec, err := loadDispatchSpecification(self)
 	if err != nil {
 		return
 	}
@@ -97,4 +96,29 @@ func tryDispatch() {
 	}
 
 	os.Exit(runCommand(dockerPath, args[1:]))
+}
+
+// loadDispatchSpecification looks up a wrapped command's spec, preferring a
+// venv-local spec store over the global one. The venv's spec store is
+// derived structurally from this executable's own location (its wrapper
+// lives at <venvDir>/bin/<name>.exe, spec store at
+// <venvDir>/share/stowage/spec) rather than from the environment, so a
+// hard-linked wrapper resolves its project-pinned version even if it's run
+// directly rather than via an activated PATH. For a globally installed
+// wrapper this resolves to the same directory as the global store, so the
+// fallback lookup below is only needed if that structural guess fails.
+func loadDispatchSpecification(name string) (Specification, error) {
+	if selfPath, err := os.Executable(); err == nil {
+		venvDir := filepath.Dir(filepath.Dir(selfPath))
+		venvStore := newStorage(
+			filepath.Join(venvDir, "share", "stowage", "spec"),
+			filepath.Join(venvDir, "share", "stowage", "repo"),
+		)
+		if spec, err := venvStore.loadSpecificationByName(name); err == nil {
+			return spec, nil
+		}
+	}
+
+	globalStore := createStorage()
+	return globalStore.loadSpecificationByName(name)
 }

@@ -77,17 +77,28 @@ func cmdSelfInstall(c *cli.Context) error {
 
 	store.saveSpecification(&selfSpec)
 
-	binary := Binary{name: "stowage", spec: &selfSpec}
+	binary := Binary{name: "stowage", spec: &selfSpec, BinDir: globalBinDir()}
 	binary.install()
 
 	return nil
 }
 
 func cmdRemove(c *cli.Context) error {
-	store := createStorage()
 	name := c.Args().First()
 
-	binary := Binary{name: name}
+	if env, ok := activeVenv(); ok {
+		if err := env.remove(name); err != nil {
+			fmt.Printf("ERROR: %s\n", err)
+			return nil
+		}
+		updateVenvManifest(func(m *venvManifest) { m.removeByName(name) })
+		fmt.Printf("%s removed\n", name)
+		return nil
+	}
+
+	store := createStorage()
+
+	binary := Binary{name: name, BinDir: globalBinDir()}
 	binary.uninstall()
 
 	spec := Specification{Name: name}
@@ -97,11 +108,14 @@ func cmdRemove(c *cli.Context) error {
 }
 
 func cmdList(c *cli.Context) error {
-	store := createStorage()
+	var store storage
+	if env, ok := activeVenv(); ok {
+		store = env.storage()
+	} else {
+		store = createStorage()
+	}
 
-	specs := store.listSpecifications()
-
-	for _, spec := range specs {
+	for _, spec := range store.listSpecifications() {
 		fmt.Println(spec)
 	}
 

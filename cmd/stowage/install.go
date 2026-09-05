@@ -155,10 +155,29 @@ func (i *Installer) setEntrypoint(entrypoint string) {
 }
 
 func (i *Installer) run() bool {
+	if env, ok := activeVenv(); ok {
+		if err := env.install(i.Spec); err != nil {
+			fmt.Printf("ERROR: %s\n", err)
+			return false
+		}
+
+		updateVenvManifest(func(m *venvManifest) {
+			m.upsert(venvManifestEntry{
+				Name:        i.Spec.Name,
+				Request:     i.Request,
+				SpecRequest: i.RequestSpec,
+				Entrypoint:  i.Spec.Command,
+			})
+		})
+
+		fmt.Printf("%s installed (in %s)\n", i.Spec.Name, env.Dir)
+		return true
+	}
+
 	store := createStorage()
 	store.saveSpecification(i.Spec)
 
-	binary := Binary{name: i.Spec.Name, spec: i.Spec}
+	binary := Binary{name: i.Spec.Name, spec: i.Spec, BinDir: globalBinDir()}
 	binary.install()
 
 	fmt.Printf("%s installed\n", i.Spec.Name)

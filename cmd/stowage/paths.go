@@ -20,6 +20,12 @@ func installPrefix() string {
 	return unixInstallPrefix()
 }
 
+// globalBinDir returns the directory wrapper binaries are installed into
+// for a regular (non-venv) install.
+func globalBinDir() string {
+	return filepath.Join(installPrefix(), "bin")
+}
+
 func runningInSelfInstallContainer() bool {
 	_, err := os.Stat("/stowage/install-tree")
 	return !os.IsNotExist(err)

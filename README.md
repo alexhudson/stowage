@@ -83,6 +83,30 @@ The install command can take a Docker image name (in which case it tries to choo
 
 stowage also has a "specfile" system. While the defaults for containers are as good as possible, it's not possible to work out how all containers should be invoked. These specfiles can also be used to install the command with the `install-spec` command. Developers working on containers can embed the specfile within the image; if this is done, stowage will pick it out and use it.
 
+# Project environments
+
+Sometimes you don't want a tool installed globally - you want a project to pin its own versions of the tools it needs, the way `python -m venv` gives a project its own Python. `stowage venv` does the same thing for stowed containers:
+
+```
+$ stowage venv .venv
+Environment created at /path/to/project/.venv
+Activate it with one of:
+  source .venv/bin/activate    (bash/zsh)
+  .venv\bin\Activate.ps1        (PowerShell)
+  .venv\bin\activate.bat        (cmd.exe)
+
+$ source .venv/bin/activate
+(.venv) $ stowage install --command python python:3.11
+python installed (in /path/to/project/.venv)
+(.venv) $ python --version
+Python 3.11.9
+(.venv) $ deactivate
+```
+
+Activating adds `.venv/bin` to the front of `PATH` for the current shell and sets `$STOWAGE_ENV`. Once active, the regular `stowage install`/`install-spec`/`uninstall`/`list` commands transparently target the environment instead of the global location - the same way `pip install` targets an activated virtualenv rather than system site-packages. `deactivate` (a function the activate script defines) then restores your previous `PATH` and prompt. Nothing is installed globally, and a command of the same name installed globally or in another project's environment is unaffected.
+
+Every install made while an environment is active is also recorded in a `stowage-env.json` manifest in the current directory, so committing that file lets a teammate (or CI) reproduce the same environment elsewhere with a plain `stowage venv .venv` - it reads the manifest and installs everything listed, if present.
+
 # Motivation
 
 This is primarily a tool for development environments: the point is to be able to quickly and easily distribute tools to fellow workers that will effectively auto-update, and be able to use them within build pipelines (which are probably container builds).
